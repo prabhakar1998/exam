@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor</title>
+
+{% load static %}
+
+
+
+</head>
+<body id="body">
+{% if error%}
+   <h2>{{error}}</h2><br>
+{% endif %}
+<p>compile your code here..</p>
+<form method="post">
+    {% csrf_token %}
+    {{form1.post1}}    
+    <p>Enter the input</p>
+    {{form2.post2}}
+    <br>
+    <button type="submit">Runcode</button>
+    {% if errors %}
+    <p>ERRORS: {{ errors }}
+    {% elif check %}</p>
+    <p>Output:<br>
+    {% for i in li %}
+    {{ i }}
+    <br>
+    {{ linebreaks }}
+    {% endfor %}
+    Execution time:{{ time }}</p>
+    {% elif execution %}
+    {{ output }}
+    {% else %}
+
+    <p>Output:<br>
+    {{ output }}
+        <br>
+    Execution time:{{ time }}</p>
+{% endif %}
+
+    
+</form>    
+    
+<p>Enter your code..</p>
+  <div id="editor" ># code here</div>
+    <script src="{% static 'editor/src/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'editor/src/ext-language_tools.js' %}"></script>
+
+    <script>
+        
+        var editor = ace.edit("editor");
+
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+        ace.require("ace/ext/language_tools");
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+        editor.getSession().on('change', function(e) {
+        editor.value = editor.getValue();
+        document.getElementById("id_post1").value = editor.value;
+        });
+    </script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+{% extends "base_quiz.html" %}
+{% load i18n %}
+
+{% load quiz_tags %}
+
+{% block title %} {{ quiz.title }} {% endblock %}
+{% block description %} {{ quiz.title }} - {{ quiz.description }} {% endblock %}
+
+{% block content %}
+
+
+{% if user.is_authenticated %}
+{% if allquestion_completed %}
+ <p>{% trans "You have completed all the questions in this section. Please move on to the next topic" %}.</p>
+{% else %}
+
+  <p>{% trans "You have already sat this exam and only one sitting is permitted" %}.</p>
+ {% endif %}
+
+{% else %}
+  <p>{% trans "This exam is only accessible to signed in users" %}.</p>
+{% endif %}
+
+{% endblock %}

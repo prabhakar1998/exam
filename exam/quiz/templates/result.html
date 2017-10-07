@@ -1,0 +1,113 @@
+ {% extends "base_quiz.html" %}
+ {% load i18n %}
+results = {
+            'quiz': self.quiz,
+            'score': self.sitting.get_current_score,
+            'max_score': self.sitting.get_max_score,
+            'percent': self.sitting.get_percent_correct,
+            'sitting': self.sitting,
+            'previous': self.previous,
+        }
+ <h1>For the quiz: {{quiz}}</h1>        
+ <h1>You have scored: {{score}}</h1>
+ <h1>You have got: {{percent}} %</h1>
+
+
+{% load quiz_tags %}
+
+{% block title %} {{ quiz.title}} {% endblock %}
+{% block description %} {% trans "Exam Results for" %} {{ quiz.title }} {% endblock %}
+ 
+{% block content %}
+
+  {% if previous.answers %}
+
+  <p class="muted"><small>{% trans "The previous question" %}:</small></p>
+  <p>{{ previous.previous_question }}</p>
+  <p>Your answer was
+	<strong>
+	  {{ previous.previous_outcome|yesno:"correct,incorrect" }}
+	</strong>
+  </p>
+  {% include 'correct_answer.html' %}
+  <p><strong>{% trans "Explanation" %}:</strong></p>
+  <div class="well " style="background-color: #fcf8e3;">
+    <p>{{ previous.previous_question.explanation }}</p>
+  </div>
+  <hr>
+
+  {% endif %}
+
+  {% if max_score %}
+
+  <div>
+	<h2>{% trans "Exam results" %}</h2>
+	<p>
+	  <small class="muted">{% trans "Exam title" %}: </small>
+	  <strong>{{ quiz.title }}</strong></p>
+
+	<p class="lead">
+	  {% trans "You have answered" %} {{ score }} {% trans "questions correctly out of" %} {{ max_score }}, {% trans "giving you" %} {{ percent }} {% trans "percent correct" %}
+
+    Do a refresh of thispage to take up another quiz for the same topic or else you can move on to the next topic.
+	</p>
+
+	{% if quiz.pass_mark <= percent  %}
+	<hr>
+        <p class="lead">You have passed the quiz!!!</p>
+	<hr>
+    {% else %}
+      	<hr>
+        <p class="lead">You have failed to pass the quiz.</p>
+	<hr>
+	{% endif %}
+  </div>
+
+
+  {% endif %}
+
+
+  <hr>
+
+  {% if possible %}
+
+  <p class="lead">
+	{% trans "Your session score is" %} {{ session }} {% trans "out of a possible" %} {{ possible }}
+  </p>
+
+  <hr>
+
+  {% endif %}
+
+
+  {% if questions %}
+
+    {% for question in questions %}
+    
+
+      <p class="lead">
+    {% autoescape off %}
+		{{ question.content }}
+    {% endautoescape %}
+	  </p>
+
+
+
+      {% if question.user_answer %}
+      <p>{% trans "Your answer" %}: {{ question|answer_choice_to_string:question.user_answer }}</p>
+      {% endif %}
+
+	  <p><strong>{% trans "Explanation" %}:</strong></p>
+	  <div class="well " style="background-color: #fcf8e3;">
+		<p>{{ question.explanation|safe }}</p>
+	  </div>
+
+	  <hr>
+
+  {% endfor %}
+
+  {% endif %}
+
+
+{% endblock %}
+ 

@@ -1,0 +1,251 @@
+{% extends "base_quiz.html" %}
+{% load i18n%}
+
+{% load quiz_tags %}
+
+{% block title %} {{ quiz.title }} {% endblock %}
+{% block description %} {{ quiz.title }} - {{ quiz.description }} {% endblock %}
+{% load static %}
+
+{% block content %}
+
+{% if previous.answers %}
+<style type="text/css">code { 
+    font-family: monospace;
+}</style>
+
+  <p class="muted"><small>{% trans "The previous question" %}:</small></p>
+  <p>{{ previous.previous_question }}</p>
+
+  {% if previous.previous_outcome %}
+	<div class="alert alert-success">
+  {% else %}
+	<div class="alert alert-warning">
+  {% endif %}
+  	  <p><small>
+		{% trans "Your answer was" %} </small>
+		<strong>
+		  {{ previous.previous_outcome|yesno:"correct,incorrect" }}
+		</strong>
+	  </p>
+
+	</div>
+
+	{% include 'correct_answer.html' %}
+
+	<p><strong>{% autoescape off %}{% trans "Explanation" %}:{% endautoescape %}</strong></p>
+	<div class="well " style="background-color: #fcf8e3;">
+	  <p>{{ previous.previous_question.explanation }}</p>
+	</div>
+
+	<hr>
+
+{% endif %}
+
+<br />
+
+
+
+
+{% if question %}
+
+<div style="float: right;">
+{% trans "Question" %} {{ que_no|add:1 }} {% trans "of" %} {{total_questions |add:1 }}
+</div>
+
+<p>
+  <small class="muted">{% trans "Question category" %}:</small>
+  <strong>{{ question.category }}</strong>
+</p>
+
+<p class="lead">{% autoescape off %}{{ question.content }}{% endautoescape %}</p>
+
+
+{% if question.figure %}
+    <img src="{{ question.figure.url }}" alt="{{ question.content }}" />
+{% endif %}
+
+<form action="" method="POST">{% csrf_token %}
+{% if que_no > 0%}
+  <input type="submit" id="Previous" value="Previous Question" class="btn btn-small btn-primary" >
+{% endif %}
+
+  <!-- Checking if the question is the last question -->
+  {%if que_no < total_questions%}
+      <input type="submit" id="Next"  value="Next Question" class="btn btn-small btn-primary" >
+  {%endif%}
+
+  <!-- Checking if the question is a coding one -->
+  {% if questiontype == "Coding" %}
+        {% if testcleared != 1%}
+            <input type="submit" id="Test" value={% trans "Test" %} class="btn btn-small btn-warning" >
+        {% endif %}
+        <!-- Cheecking if the test is cleared -->       
+        {% if testcleared == 1%}
+        <input type="submit" id="Submit" value={% trans "Submit" %} class="btn btn-small btn-success" >
+        {%endif%}
+
+  {% endif %}
+  <input type="submit" id="FinishTest" value="I am done with the test" class="btn btn-small btn-success" >
+ <br>
+  <input type=hidden name="question_id" value="{{ question.id }}">
+  
+  <!-- Hidden input field button type -->
+  {{form.buttontype}}
+
+  {% if time %}  
+    <br>    
+         <li class="list-group-item">  
+           <h5>{{status}}</h5>
+         </li>        
+       {% if errors != "" %}
+         <li class="list-group-item">  
+           <h5>Error:  </h5><p>{{errors}} </p>
+         </li>
+       {% endif %}     
+        <li class="list-group-item">         
+         <h5>Execution Time: </h5><p>{{time}}</p>
+        </li>        
+       {% if hidden_output %}
+       <li class="list-group-item">    
+         <h5>Input: </h5>
+         {% for i in input%}     
+            <p>{{i}}</p>
+         {%endfor%}
+        </li>        
+        <li class="list-group-item">  
+        <h5>Expected Output: </h5>
+          {% for i in hidden_output%}       
+            <p>{{i}}</p>
+          {%endfor%}
+        </li>
+        <li class="list-group-item">         
+         <h5>Your Output: </h5>
+          {% for i in output%}       
+            <p>{{i}}</p>
+          {%endfor%}
+        </li>
+       {% endif %}     
+  {% endif %}
+
+<br>
+<br>
+
+  <ul class="list-group">  
+   {% if form.type %}
+        {% for answer in form.answers %}
+       {{ answer }}  
+    {% endfor %}
+
+    {% else %}{% autoescape off %}
+		{% for answer in form.answers %}
+		  <li class="list-group-item">
+		    {{ answer}}
+		  </li>
+		{% endfor %}{% endautoescape %}
+  {% endif %}
+
+    <!-- dummy form helper nothing to do with actual code its used -->      
+		{% for answer in form.type %}
+		   {{ answer|escape|safe }}
+		{% endfor %}	
+        
+  </ul>
+  {% if form.type %}
+  <div id="editor" ># code here</div>
+  {% endif %}
+  <!-- Checking if the question is the first questio -->
+		
+</form>
+
+{% endif %}
+
+
+<hr>
+
+{% if form.type %}
+     
+      <script src="{% static 'editor/src/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'editor/src/ext-language_tools.js' %}"></script>
+
+    <script>
+        
+        var editor = ace.edit("editor");
+
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+        ace.require("ace/ext/language_tools");
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+        editor.getSession().on('change', function(e) {
+        editor.value = editor.getValue();
+        document.getElementById("id_answers").value = editor.value;
+        });
+        if ( "{{user_code|safe|escapejs}}" != null ){            
+            var edit= "{{ user_code|safe|escapejs }}"
+            editor.setValue(edit);                        
+          }
+    </script>
+{%else%}   
+  {% if tot_radio_options %}
+  <script>
+    var id_radio="id_answers_";
+    console.log('{{tot_radio_options}}')
+    for (i = 0; i < '{{tot_radio_options}}' ; i++) {      
+        if(document.getElementById((id_radio.concat(i.toString()))).value == '{{old_answer}}'){
+            document.getElementById((id_radio.concat(i.toString()))).checked = true;
+       }
+  }
+  </script>
+   {% endif %}
+{% endif %}
+
+
+    <script> 
+       document.getElementById("id_buttontype").value = "#none";
+    </script>
+    {% if que_no > 0%}
+          <script> 
+             document.getElementById('Previous').onclick = function() {
+            document.getElementById("id_buttontype").value = "Previous";
+              };
+          </script>
+    {% endif %}
+{% if que_no > 0%}
+  <script>       
+        document.getElementById('Previous').onclick = function() {
+         document.getElementById("id_buttontype").value = "Previous";
+        };    
+  </script>
+{% endif %}
+
+  {%if que_no < total_questions%}
+    <script>            
+        document.getElementById('Next').onclick = function() {
+         document.getElementById("id_buttontype").value = "Next";
+        };               
+    </script>
+  {%endif%}
+    {% if questiontype == "Coding" %}
+      <script>            
+          document.getElementById('Test').onclick = function() {
+           document.getElementById("id_buttontype").value = "Test";
+          };        
+      </script>           
+{% endif %}
+{% if form.formtype and testcleared == 1 %}
+     <script> 
+        document.getElementById('Submit').onclick = function() {
+         document.getElementById("id_buttontype").value = "Submit";
+        }; 
+    </script> 
+{%endif%}
+  <script>       
+        document.getElementById('FinishTest').onclick = function() {
+         document.getElementById("id_buttontype").value = "EndTest";
+        };    
+  </script>
+{% endblock %}
