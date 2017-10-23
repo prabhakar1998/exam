@@ -3,7 +3,7 @@ from django.contrib import admin
 from quiz.views import QuizListView, CategoriesListView,\
     ViewQuizListByCategory, QuizUserProgressView, QuizMarkingList,\
     QuizMarkingDetail, QuizDetailView, QuizTake
-
+admin.autodiscover()
 urlpatterns = [url(r'^admin/', include(admin.site.urls)),
                url(r'^$',
                    view=QuizListView.as_view(),
