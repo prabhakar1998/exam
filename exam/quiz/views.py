@@ -428,8 +428,8 @@ class QuizTake(FormView):
 
             results['incorrect_questions'] = (
                 self.request
-                    .session[self.quiz.anon_q_data()]['incorrect_questions'])
-
+                     .session[self.quiz.anon_q_data()]['incorrect_questions'])
+ 
         else:
             results['previous'] = self.previous
 
